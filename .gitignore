@@ -1,0 +1,10 @@
+.idea
+.venv
+.env
+.pytest_cache
+__pycache__
+venv
+
+.vscode
+*.drawio
+.debug.env

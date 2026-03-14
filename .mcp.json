@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "arkham": {
+      "type": "stdio",
+      "command": "/home/vac/Desktop/bot/.venv/bin/python",
+      "args": ["-m", "arkham_mcp.server"],
+      "env": {
+        "ARKHAM_BASE_URL": "https://api.arkm.com",
+        "ARKHAM_COOKIE": "AMP_f072531383=JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjIyMGQ4NGEyYi1kMjNkLTQzYzctYTFiMS01YTM4NDg4MDMxMDUlMjIlMkMlMjJzZXNzaW9uSWQlMjIlM0ExNzczMjQ0NjM2MzY3JTJDJTIyb3B0T3V0JTIyJTNBZmFsc2UlMkMlMjJsYXN0RXZlbnRUaW1lJTIyJTNBMTc3MzI0NDY2ODg0MiUyQyUyMmxhc3RFdmVudElkJTIyJTNBMiUyQyUyMnBhZ2VDb3VudGVyJTIyJTNBMCUyQyUyMmNvb2tpZURvbWFpbiUyMiUzQSUyMi5hcmttLmNvbSUyMiU3RA==;",
+        "ALL_PROXY": "",
+        "all_proxy": "",
+        "ARKHAM_PROVIDER": "playwright"  
+      }
+    }
+  }
+}

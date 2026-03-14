@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arkham": {
+      "transport": "http",
+      "url": "https://donors-brothers-fitted-events.trycloudflare.com"
+    }
+  }
+}

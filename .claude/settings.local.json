@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__arkham__resolve_address",
+      "mcp__arkham__get_address_activity",
+      "mcp__arkham__get_transfers",
+      "mcp__arkham__get_address_history",
+      "mcp__arkham__get_swaps",
+      "WebFetch(domain:intel.arkm.com)",
+      "mcp__arkham__search"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "arkham"
+  ]
+}
