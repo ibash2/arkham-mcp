@@ -62,10 +62,7 @@ def register(mcp: FastMCP) -> None:
                 "twitter": entity.get("twitter"),
             } if entity else None
 
-            result["labels"] = [
-                {"name": lbl.get("name"), "source": lbl.get("source")}
-                for lbl in (enriched.get("arkhamLabel") or [])
-            ]
+            result["labels"] = enriched.get("arkhamLabel") or []
             result["predictions"] = [
                 {"entity": p.get("entity", {}).get("name"), "confidence": p.get("confidence")}
                 for p in (enriched.get("predictedEntity") or [])
