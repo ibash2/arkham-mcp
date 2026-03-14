@@ -489,21 +489,20 @@ def register(mcp: FastMCP) -> None:
             "Paginate through ALL matching transfers, aggregate per-wallet stats, "
             "and return a ranked leaderboard — no manual offset needed.\n"
             "PARAMETERS:\n"
-            "  tokens          — token contract address or CoinGecko ID (e.g. '0xabc' or 'bulla-3')\n"
+            "  tokens          — token contract address or CoinGecko ID\n"
             "  chains          — comma-separated chains (e.g. 'bsc,ethereum')\n"
-            "  role            — 'buyer' (track to-address) | 'seller' (from-address) | 'all'\n"
-            "  time_last       — '1h' | '24h' | '7d' | '30d'\n"
+            "  role            — 'buyer' | 'seller' | 'all'\n"
+            "  time_last       — '1h' | '24h' | '7d' | '30d' (ignored when date_from/date_to set)\n"
+            "  date_from       — start of window, ISO format e.g. '2026-03-10' or '2026-03-10T12:00'\n"
+            "  date_to         — end of window, ISO format e.g. '2026-03-11T23:59'\n"
             "  usd_gte         — minimum USD per transfer (e.g. '200')\n"
             "  usd_lte         — maximum USD per transfer\n"
-            "  time_gte        — start of window as Unix milliseconds (overrides time_last)\n"
-            "  time_lte        — end of window as Unix milliseconds (overrides time_last)\n"
             "  sort_by         — 'tx_count' | 'volume_usd' | 'avg_usd' (default: 'tx_count')\n"
             "  top_n           — wallets to return, max 100 (default: 30)\n"
-            "  exclude_entities — comma-separated entity names to skip (e.g. 'Binance,PancakeSwap')\n"
+            "  exclude_entities — comma-separated entity names to skip\n"
             "  exclude_types   — comma-separated entity types to skip (e.g. 'cex,dex,bridge')\n"
-            "  page_size       — records per API call, 50–500 (default: 500)\n"
-            "Automatically pages up to the API hard cap of 10 000 records.\n"
-            "Rate: ~1 req/sec. Expect 10–20 s for a full scan."
+            "  page_size       — records per API call, max 70\n"
+            "Automatically pages up to 10 000 records. ~1 req/sec."
         ),
     )
     async def aggregate_wallet_activity(
@@ -512,25 +511,43 @@ def register(mcp: FastMCP) -> None:
         chains: Optional[str] = None,
         role: str = "buyer",
         time_last: Optional[str] = "7d",
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
         usd_gte: Optional[str] = None,
         usd_lte: Optional[str] = None,
-        time_gte: Optional[str] = None,
-        time_lte: Optional[str] = None,
         sort_by: str = "tx_count",
         top_n: int = 30,
         exclude_entities: Optional[str] = None,
         exclude_types: Optional[str] = None,
         page_size: int = 70,
     ) -> dict:
+        from datetime import datetime, timezone
+
         client = ctx.lifespan_context["client"]
 
         PAGE_SIZE  = max(50, min(page_size, 70))
         MAX_OFFSET = 10_000 - PAGE_SIZE
 
-        # When time_gte/time_lte provided pass them directly to API; clear time_last
-        _api_time_last = None if (time_gte or time_lte) else time_last
-        _api_time_gte  = int(time_gte) if time_gte else None
-        _api_time_lte  = int(time_lte) if time_lte else None
+        # --- resolve time window ---
+        _ts_from: Optional[str] = None  # ISO prefix for client-side filtering
+        _ts_to:   Optional[str] = None
+        _time_last = time_last
+
+        if date_from or date_to:
+            now = datetime.now(tz=timezone.utc)
+            if date_from:
+                dt_from = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
+                _ts_from = dt_from.strftime("%Y-%m-%dT%H:%M")
+                days_back = (now - dt_from).total_seconds() / 86400
+                if days_back <= 1:
+                    _time_last = "24h"
+                elif days_back <= 7:
+                    _time_last = "7d"
+                else:
+                    _time_last = "30d"
+            if date_to:
+                dt_to = datetime.fromisoformat(date_to).replace(tzinfo=timezone.utc)
+                _ts_to = dt_to.strftime("%Y-%m-%dT%H:%M")
 
         # addr -> {tx_count, volume_usd, entity_name, entity_type, first_seen, last_seen}
         stats: dict[str, dict] = {}
@@ -543,20 +560,27 @@ def register(mcp: FastMCP) -> None:
                 tokens=tokens,
                 chains=chains,
                 flow="all",
-                time_last=_api_time_last,
-                time_gte=_api_time_gte,
-                time_lte=_api_time_lte,
+                time_last=_time_last,
                 usd_gte=usd_gte,
                 usd_lte=usd_lte,
                 sort_key="time",
-                sort_dir="desc",
+                sort_dir="asc",
                 limit=PAGE_SIZE,
                 offset=offset,
             )
 
             transfers = (raw or {}).get("transfers") or []
-            if not transfers:
+            raw_count = len(transfers)
+            if not raw_count:
                 break
+
+            # client-side filter for date window
+            if _ts_from or _ts_to:
+                transfers = [
+                    t for t in transfers
+                    if (not _ts_from or (t.get("blockTimestamp") or "") >= _ts_from)
+                    and (not _ts_to   or (t.get("blockTimestamp") or "") <= _ts_to)
+                ]
 
             for t in transfers:
                 if _is_fake_token(t):
@@ -608,8 +632,8 @@ def register(mcp: FastMCP) -> None:
             pages_fetched += 1
             offset        += PAGE_SIZE
 
-            if len(transfers) < PAGE_SIZE:
-                break  # last page
+            if raw_count < PAGE_SIZE:
+                break  # last page (use raw_count, not filtered)
 
             await asyncio.sleep(1.1)
 
@@ -671,9 +695,9 @@ def register(mcp: FastMCP) -> None:
                 "after_filter":        len(wallets),
                 "sort_by":             sort_by,
                 "role":                role,
-                "time_last":           _api_time_last,
-                "time_gte":            time_gte,
-                "time_lte":            time_lte,
+                "time_last":           _time_last,
+                "date_from":           date_from,
+                "date_to":             date_to,
             },
             "wallets": top,
         }
