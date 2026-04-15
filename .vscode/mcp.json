@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "arkham": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "arkham-mcp"],
+      "env": {
+        "ARKHAM_API_KEY": "${input:arkhamApiKey}",
+        "ARKHAM_BASE_URL": "https://api.arkm.com",
+        "ARKHAM_PROVIDER": "arkham"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "arkhamApiKey",
+      "type": "promptString",
+      "description": "Arkham Intelligence API key (intel.arkm.com → Settings → API)",
+      "password": true
+    }
+  ]
+}

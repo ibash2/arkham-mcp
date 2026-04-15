@@ -161,23 +161,19 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
 ]
-playwright = [
-    { name = "patchright" },
-]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9" },
     { name = "fastmcp", specifier = ">=2.0" },
-    { name = "patchright", specifier = ">=1.58.2,<2.0.0" },
-    { name = "patchright", marker = "extra == 'playwright'", specifier = ">=1.0" },
-    { name = "playwright", specifier = ">=1.58.0,<2.0.0" },
+    { name = "patchright", specifier = ">=1.58" },
+    { name = "playwright", specifier = ">=1.58" },
     { name = "pydantic-settings", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
 ]
-provides-extras = ["playwright", "dev"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "attrs"

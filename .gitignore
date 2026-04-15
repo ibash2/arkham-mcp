@@ -5,6 +5,16 @@
 __pycache__
 venv
 
-.vscode
+# Client-specific local settings (machine-specific, may contain credentials)
+.claude/
+.qwen/
+.vscode/settings.json
+.vscode/*.code-workspace
+
 *.drawio
 .debug.env
+*.egg-info
+dist
+build
+poetry.lock
+PUBLICATION_PLAN.md

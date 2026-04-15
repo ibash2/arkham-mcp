@@ -243,6 +243,8 @@ class TestGetSwaps:
             entity=None,
             time_last="24h",
             chains=None,
+            flow=None,
+            tokens=None,
             limit=50,
             sort_dir="desc",
         )
@@ -260,6 +262,8 @@ class TestGetSwaps:
             entity="binance",
             time_last="7d",
             chains="ethereum",
+            flow=None,
+            tokens=None,
             limit=50,
             sort_dir="desc",
         )

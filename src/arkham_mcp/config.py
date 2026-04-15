@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     api_key: Optional[str] = None
     cookie: Optional[str] = None  # raw Cookie header: "name=value; name2=value2"
 
-    base_url: str = "https://intel.arkm.com/api"
+    base_url: str = "https://api.arkm.com"
     provider: str = "playwright"  # имя в providers/_REGISTRY
 
     model_config = {"env_prefix": "ARKHAM_"}

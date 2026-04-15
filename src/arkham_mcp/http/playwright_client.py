@@ -17,6 +17,7 @@ Key differences from AiohttpClient:
 """
 
 import json as _json
+import logging
 import time
 from typing import Any, Optional
 from urllib.parse import urlencode
@@ -25,6 +26,64 @@ from ..client import ArkhamAPIError, ArkhamClient
 from .playwright_driver import PlaywrightWebDriverHttp
 
 BROWSER_TIMEOUT_MS = 60_000
+
+logger = logging.getLogger(__name__)
+
+
+async def _solve_cloudflare_challenge(page, *, timeout: int) -> None:
+    """
+    Attempt to automatically pass a Cloudflare Turnstile challenge.
+
+    Cloudflare shows two types of challenges:
+      1. Pure JS challenge — resolves on its own, no click needed.
+      2. Turnstile — shows an iframe with a "Verify you are human" checkbox.
+
+    We try to click the checkbox inside the Turnstile iframe.
+    If not found, we fall back to waiting for the title to change.
+    """
+    import asyncio as _asyncio
+
+    # Give the pure JS challenge a chance to resolve on its own first.
+    try:
+        await page.wait_for_function(
+            "() => !document.title.includes('Just a moment')",
+            timeout=5_000,
+        )
+        await page.wait_for_load_state("load", timeout=timeout)
+        return
+    except Exception:
+        pass  # Didn't auto-resolve — try clicking the Turnstile checkbox.
+
+    logger.info("Cloudflare challenge detected, attempting auto-click...")
+
+    # Cloudflare Turnstile renders inside an iframe whose src contains
+    # "challenges.cloudflare.com". Inside that iframe there is a checkbox.
+    try:
+        cf_frame_handle = await page.wait_for_selector(
+            "iframe[src*='challenges.cloudflare.com']",
+            timeout=10_000,
+        )
+        if cf_frame_handle:
+            cf_frame = await cf_frame_handle.content_frame()
+            if cf_frame:
+                checkbox = await cf_frame.wait_for_selector(
+                    "input[type='checkbox']",
+                    timeout=8_000,
+                )
+                if checkbox:
+                    # Human-like: small random delay before clicking.
+                    await _asyncio.sleep(0.5)
+                    await checkbox.click()
+                    logger.info("Clicked Cloudflare Turnstile checkbox.")
+    except Exception as exc:
+        logger.warning("Could not auto-click Cloudflare checkbox: %s", exc)
+
+    # Wait for challenge to clear regardless of whether click succeeded.
+    await page.wait_for_function(
+        "() => !document.title.includes('Just a moment')",
+        timeout=timeout,
+    )
+    await page.wait_for_load_state("load", timeout=timeout)
 
 
 def _parse_cookie_header(cookie_str: str, domain: str = ".arkm.com") -> list[dict]:
@@ -55,7 +114,7 @@ class PlaywrightArkhamClient(ArkhamClient):
         api_key: Optional[str] = None,
         cookie: Optional[str] = None,
         base_url: str = "https://api.arkm.com",
-        headless: bool = False,
+        headless: bool = True,
         timeout_ms: int = BROWSER_TIMEOUT_MS,
     ):
         super().__init__(api_key=api_key, cookie=cookie, base_url=base_url)
@@ -84,14 +143,10 @@ class PlaywrightArkhamClient(ArkhamClient):
             timeout=self._driver.timeout,
         )
 
-        # If Cloudflare shows a JS challenge, wait for it to be resolved.
+        # If Cloudflare shows a challenge, try to solve it automatically.
         title = await page.title()
         if "Just a moment" in title:
-            await page.wait_for_function(
-                "() => !document.title.includes('Just a moment')",
-                timeout=self._driver.timeout,
-            )
-            await page.wait_for_load_state("load", timeout=self._driver.timeout)
+            await _solve_cloudflare_challenge(page, timeout=self._driver.timeout)
 
         return self
 

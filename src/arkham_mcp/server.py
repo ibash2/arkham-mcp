@@ -35,7 +35,6 @@ mcp = FastMCP(
         "analyze_transfers_pattern (bot/wash/layered pattern detection), "
         "find_coordinated_wallets (cluster & timing-based coordination), "
         "trace_fund_source (backward hop tracing, CEX/mixer/fresh-wallet classification), "
-        "scan_token_manipulation (pump & dump, wash trading, spoofing score 0-100), "
         "aggregate_wallet_activity (auto-paginated leaderboard: top buyers/sellers ranked by tx_count or volume)."
     ),
     lifespan=lifespan,

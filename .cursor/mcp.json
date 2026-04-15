@@ -1,7 +1,6 @@
 {
   "mcpServers": {
     "arkham": {
-      "type": "stdio",
       "command": "uv",
       "args": ["run", "arkham-mcp"],
       "env": {

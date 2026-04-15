@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 from .cache import ResponseCache, TTL_STATIC, TTL_ENTITY, TTL_ADDRESS, TTL_MARKET, TTL_FLOW
 
-BASE_URL = "https://intel.arkm.com/api"
+BASE_URL = "https://api.arkm.com"
 
 
 class RateLimiter:
@@ -159,14 +159,6 @@ class ArkhamClient:
         """Single address intelligence lookup."""
         return await self._cached_get(f"/intelligence/address/{address}", TTL_ADDRESS)
 
-    async def get_address_all_chains(self, address: str) -> dict:
-        """Multi-chain address intelligence."""
-        return await self._cached_get(f"/intelligence/address/{address}/all", TTL_ADDRESS)
-
-    async def get_address_enriched_all_chains(self, address: str) -> dict:
-        """Multi-chain enriched address intelligence across all supported networks."""
-        return await self._cached_get(f"/intelligence/address_enriched/{address}/all", TTL_ADDRESS)
-
     async def get_address_enriched(
         self,
         address: str,
@@ -189,23 +181,11 @@ class ArkhamClient:
             raise ValueError("Batch size cannot exceed 1000 addresses.")
         return await self._post("/intelligence/address/batch", json={"addresses": addresses})
 
-    async def batch_addresses_all_chains(self, addresses: list[str]) -> list[dict]:
-        """Batch multi-chain address intelligence — up to 1000 addresses."""
-        if len(addresses) > 1000:
-            raise ValueError("Batch size cannot exceed 1000 addresses.")
-        return await self._post("/intelligence/address/batch/all", json={"addresses": addresses})
-
     async def batch_addresses_enriched(self, addresses: list[str]) -> list[dict]:
         """Batch enriched address intelligence — up to 1000 addresses."""
         if len(addresses) > 1000:
             raise ValueError("Batch size cannot exceed 1000 addresses.")
         return await self._post("/intelligence/address_enriched/batch", json={"addresses": addresses})
-
-    async def batch_addresses_enriched_all_chains(self, addresses: list[str]) -> list[dict]:
-        """Batch enriched multi-chain address intelligence — up to 1000 addresses."""
-        if len(addresses) > 1000:
-            raise ValueError("Batch size cannot exceed 1000 addresses.")
-        return await self._post("/intelligence/address_enriched/batch/all", json={"addresses": addresses})
 
     # ===================================================================
     # Intelligence — Entity
@@ -302,24 +282,15 @@ class ArkhamClient:
         params = self._build_params(chains=chains)
         return await self._cached_get(f"/balances/entity/{entity}", TTL_MARKET, params or None)
 
-    async def get_solana_subaccount_balances(self, addresses: str) -> dict:
-        """Solana staking/lending positions for addresses (comma-separated)."""
-        return await self._get(f"/balances/solana/subaccounts/address/{addresses}")
-
-    async def get_solana_entity_subaccount_balances(self, entities: str) -> dict:
-        """Solana staking/lending positions for entities (comma-separated slugs)."""
-        return await self._get(f"/balances/solana/subaccounts/entity/{entities}")
-
-    async def get_entity_portfolio(
+    async def get_entity_balances(
         self,
         entity: str,
         *,
-        time_gte: Optional[int] = None,
-        time_lte: Optional[int] = None,
+        chains: Optional[str] = None,
     ) -> dict:
-        """Historical portfolio snapshots for an entity."""
-        params = self._build_params(timeGte=time_gte, timeLte=time_lte)
-        return await self._get(f"/portfolio/entity/{entity}", params or None)
+        """Current token holdings for an entity."""
+        params = self._build_params(chains=chains)
+        return await self._cached_get(f"/balances/entity/{entity}", TTL_MARKET, params or None)
 
     async def get_entity_portfolio_timeseries(
         self,
@@ -919,48 +890,3 @@ class ArkhamClient:
         """
         params = self._build_params(chain=chain, transferType=transfer_type)
         return await self._get(f"/transfers/tx/{tx_hash}", params or None)
-
-
-# ===================================================================
-# Quick usage example
-# ===================================================================
-
-
-async def _example():
-    import os
-
-    # Режим 1: API ключ
-    # async with ArkhamClient(api_key=os.environ["ARKHAM_API_KEY"]) as client:
-
-    # Режим 2: Cookie
-    # async with ArkhamClient(cookie=os.environ["ARKHAM_COOKIE"]) as client:
-
-    # Режим 3: оба
-    async with ArkhamClient(
-        api_key=os.environ.get("ARKHAM_API_KEY"),
-        cookie=os.environ.get("ARKHAM_COOKIE"),
-    ) as client:
-        # Single address lookup
-        addr = await client.get_address("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
-        print("Address:", addr)
-
-        # Batch lookup
-        batch = await client.batch_addresses(
-            [
-                "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-                "0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8",
-            ]
-        )
-        print("Batch:", batch)
-
-        # Paginate address updates
-        async for page in client.paginate_updates(
-            client.get_address_updates,
-            since=1_700_000_000_000,
-            limit=100,
-        ):
-            print(f"Got {len(page.get('items', []))} updates")
-
-
-if __name__ == "__main__":
-    asyncio.run(_example())

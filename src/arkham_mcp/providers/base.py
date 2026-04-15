@@ -20,10 +20,6 @@ class DataProvider(Protocol):
 
     async def get_address(self, address: str) -> dict: ...
 
-    async def get_address_all_chains(self, address: str) -> dict: ...
-
-    async def get_address_enriched_all_chains(self, address: str) -> dict: ...
-
     async def get_address_enriched(
         self,
         address: str,
@@ -35,11 +31,7 @@ class DataProvider(Protocol):
 
     async def batch_addresses(self, addresses: list[str]) -> list[dict]: ...
 
-    async def batch_addresses_all_chains(self, addresses: list[str]) -> list[dict]: ...
-
     async def batch_addresses_enriched(self, addresses: list[str]) -> list[dict]: ...
-
-    async def batch_addresses_enriched_all_chains(self, addresses: list[str]) -> list[dict]: ...
 
     # ── Intelligence / Entity ───────────────────────────────────────────
 
@@ -91,10 +83,6 @@ class DataProvider(Protocol):
         chains: Optional[str] = None,
     ) -> dict: ...
 
-    async def get_solana_subaccount_balances(self, addresses: str) -> dict: ...
-
-    async def get_solana_entity_subaccount_balances(self, entities: str) -> dict: ...
-
     # ── Portfolio ───────────────────────────────────────────────────────
 
     async def get_portfolio(
@@ -112,14 +100,6 @@ class DataProvider(Protocol):
         time_gte: Optional[int] = None,
         time_lte: Optional[int] = None,
         chains: Optional[str] = None,
-    ) -> dict: ...
-
-    async def get_entity_portfolio(
-        self,
-        entity: str,
-        *,
-        time_gte: Optional[int] = None,
-        time_lte: Optional[int] = None,
     ) -> dict: ...
 
     async def get_entity_portfolio_timeseries(

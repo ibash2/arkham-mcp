@@ -21,6 +21,9 @@ def make_client(**overrides) -> AsyncMock:
         "get_address_enriched_all_chains": {"address": "0xABC", "chains": ["ethereum", "polygon", "bsc"]},
         "batch_addresses_all_chains": [{"address": "0xABC"}, {"address": "0xDEF"}],
         "batch_addresses_enriched_all_chains": [{"address": "0xABC"}, {"address": "0xDEF"}],
+        "get_solana_subaccount_balances": {"data": []},
+        "get_solana_entity_subaccount_balances": {"data": []},
+        "get_entity_portfolio": {"snapshots": []},
         "get_address_enriched": {
             "arkhamEntity": {"name": "Vitalik", "type": "individual", "website": None, "twitter": "VitalikButerin"},
             "arkhamLabel": [{"name": "ENS: vitalik.eth", "source": "ens"}],

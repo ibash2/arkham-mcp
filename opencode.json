@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "arkham-mcp": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "-m",
+        "arkham_mcp.server"
+      ],
+      "environment": {
+        "ARKHAM_API_KEY": "${ARKHAM_API_KEY}",
+        "ARKHAM_BASE_URL": "https://api.arkm.com",
+        "ARKHAM_PROVIDER": "arkham"
+      }
+    }
+  }
+}
