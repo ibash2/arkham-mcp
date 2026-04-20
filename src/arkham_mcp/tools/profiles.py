@@ -9,6 +9,8 @@ from typing import Optional
 from fastmcp import FastMCP
 from fastmcp.server.context import Context
 
+from .utils import to_table
+
 
 def _top_balances(balances_data: dict, top_n: int = 10) -> list[dict]:
     """Extract and sort top holdings by USD value."""
@@ -62,11 +64,11 @@ def register(mcp: FastMCP) -> None:
                 "twitter": entity.get("twitter"),
             } if entity else None
 
-            result["labels"] = enriched.get("arkhamLabel") or []
-            result["predictions"] = [
+            result["labels"] = [l.get("name") for l in (enriched.get("arkhamLabel") or [])]
+            result["predictions"] = to_table([
                 {"entity": p.get("entity", {}).get("name"), "confidence": p.get("confidence")}
                 for p in (enriched.get("predictedEntity") or [])
-            ]
+            ])
             result["chains"] = enriched.get("chains") or []
             result["tags"] = [
                 t.get("name") for t in (enriched.get("populatedTags") or [])
@@ -82,7 +84,7 @@ def register(mcp: FastMCP) -> None:
         if not isinstance(balances, Exception) and isinstance(balances, dict):
             top = _top_balances(balances)
             total_usd = sum(b["usd_value"] for b in top)
-            result["top_holdings"] = top
+            result["top_holdings"] = to_table(top, ["token", "chain", "usd_value", "amount"])
             result["total_usd"] = total_usd
         else:
             await ctx.warning(f"Could not fetch balances: {balances}")
@@ -130,21 +132,21 @@ def register(mcp: FastMCP) -> None:
             await ctx.warning(f"Summary fetch failed: {summary}")
 
         if not isinstance(balances, Exception) and isinstance(balances, dict):
-            result["top_holdings"] = _top_balances(balances)
+            result["top_holdings"] = to_table(_top_balances(balances), ["token", "chain", "usd_value", "amount"])
         else:
             await ctx.warning(f"Balances fetch failed: {balances}")
-            result["top_holdings"] = []
+            result["top_holdings"] = to_table([])
 
         if not isinstance(predictions, Exception):
             pred_list = predictions.get("predictions") if isinstance(predictions, dict) else (predictions if isinstance(predictions, list) else [])
-            result["predicted_addresses"] = [
+            result["predicted_addresses"] = to_table([
                 {
                     "address": p.get("address"),
                     "chain": p.get("chain"),
                     "confidence": p.get("confidence"),
                 }
                 for p in pred_list[:20]
-            ]
+            ])
         else:
             await ctx.warning(f"Predictions fetch failed: {predictions}")
             result["predicted_addresses"] = []
@@ -196,15 +198,66 @@ def register(mcp: FastMCP) -> None:
                 top_token = tokens[0].get("token", {}).get("symbol") if tokens else None
 
             results.append({
-                "address": addr,
+                "address":     addr,
                 "entity_name": entity.get("name"),
                 "entity_type": entity.get("type"),
-                "labels": [lbl.get("name") for lbl in (item.get("arkhamLabel") or [])],
-                "tags": [t.get("name") for t in (item.get("populatedTags") or [])],
-                "chains": item.get("chains") or [],
-                "total_usd": total_usd,
-                "top_token": top_token,
-                "cluster_id": item.get("clusterId"),
+                "labels":      ", ".join(lbl.get("name", "") for lbl in (item.get("arkhamLabel") or [])),
+                "tags":        ", ".join(t.get("name", "") for t in (item.get("populatedTags") or [])),
+                "chains":      ", ".join(item.get("chains") or []),
+                "total_usd":   total_usd,
+                "top_token":   top_token,
+                "cluster_id":  item.get("clusterId"),
             })
 
-        return results
+        return to_table(results)
+
+    @mcp.tool(
+        name="investigate_address",
+        description=(
+            "ALWAYS call this tool first when asked to investigate, analyze, research, "
+            "or identify a blockchain address or wallet. "
+            "Returns a step-by-step investigation plan — follow every step in order. "
+            "depth: 'full' (default) for complete analysis, 'quick' for a brief summary."
+        ),
+    )
+    async def investigate_address(address: str, ctx: Context, depth: str = "full") -> str:
+        import time as _time
+        now_ms = int(_time.time() * 1000)
+        from_ms = now_ms - 2_592_000_000  # 30 days ago
+
+        if depth == "quick":
+            return (
+                f"Quick investigation of `{address}` — follow these steps:\n\n"
+                f"1. Call `resolve_address(\"{address}\")` — identify the owner.\n"
+                f"2. Call `get_transfers(base=\"{address}\", time_last=\"7d\", sort_key=\"usd\", sort_dir=\"desc\", limit=20)` — largest transfers.\n"
+                f"3. Call `get_portfolio(\"{address}\")` — current holdings.\n"
+                f"4. Write a 3-sentence summary: who, what they hold, any red flags."
+            )
+
+        return f"""Investigation plan for `{address}` — execute every step in order:
+
+**Step 1 — Resolve identity**
+Call `resolve_address("{address}")`.
+- If `is_identified=true`: note entity name, type, labels.
+- If `is_identified=false`: mark UNKNOWN and proceed with caution.
+
+**Step 2 — Current portfolio**
+Call `get_portfolio("{address}")`.
+- List top 5 holdings by USD value.
+- Flag unusual tokens (obscure DeFi, wrapped assets).
+
+**Step 3 — Portfolio changes (30d)**
+Call `get_portfolio_change("{address}", from_ts={from_ms}, to_ts={now_ms})`.
+- added = new positions opened. removed = positions closed.
+- changed: delta_balance > 0 means accumulating (buying), delta_balance < 0 means distributing (selling).
+
+**Step 4 — Analyze transfers**
+Call `get_transfers(base="{address}", time_last="30d", sort_key="usd", sort_dir="desc", limit=50)`.
+- Largest inflows and outflows. Notable counterparties.
+- Flag mixers, sanctioned addresses, recurring patterns.
+
+**Step 5 — Trace outgoing funds**
+Call `trace_fund_flow("{address}", time_last="7d")`.
+- Destinations: entity, type, volume. Group: exchanges vs unknown.
+- Highlight suspicious_flags.
+"""

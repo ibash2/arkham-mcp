@@ -45,7 +45,9 @@ class DataProvider(Protocol):
         self,
         *,
         chains: Optional[str] = None,
-        entity_type: Optional[str] = None,
+        entity_types: Optional[str] = None,
+        entity_ids: Optional[str] = None,
+        entity_tags: Optional[str] = None,
         time_last: Optional[str] = None,
         time_gte: Optional[int] = None,
         time_lte: Optional[int] = None,
@@ -53,6 +55,11 @@ class DataProvider(Protocol):
         sort_dir: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        pricing_ids: Optional[str] = None,
+        balance_min: Optional[float] = None,
+        interval: Optional[str] = None,
+        order_by: Optional[str] = None,
+        order_dir: Optional[str] = None,
     ) -> dict: ...
 
     # ── Intelligence / Token & Contract ────────────────────────────────
@@ -89,8 +96,7 @@ class DataProvider(Protocol):
         self,
         address: str,
         *,
-        time_gte: Optional[int] = None,
-        time_lte: Optional[int] = None,
+        time: Optional[int] = None,
     ) -> dict: ...
 
     async def get_portfolio_timeseries(
@@ -191,10 +197,15 @@ class DataProvider(Protocol):
 
     async def get_swaps(
         self,
-        address: Optional[str] = None,
+        base: Optional[str] = None,
         entity: Optional[str] = None,
         *,
         chains: Optional[str] = None,
+        token_from: Optional[str] = None,
+        token_to: Optional[str] = None,
+        protocols: Optional[str] = None,
+        usd_gte: Optional[float] = None,
+        usd_lte: Optional[float] = None,
         time_gte: Optional[int] = None,
         time_lte: Optional[int] = None,
         time_last: Optional[str] = None,
@@ -234,6 +245,16 @@ class DataProvider(Protocol):
     async def get_altcoin_index(self) -> dict: ...
 
     async def get_arkm_circulating_supply(self) -> dict: ...
+
+    async def get_token_holders(self, token: str, *, group_by_entity: bool = False) -> dict: ...
+
+    async def get_token_market(self, token: str) -> dict: ...
+
+    async def get_token_top_flow(self, token: str, *, time_last: Optional[str] = None, chains: Optional[str] = None) -> dict: ...
+
+    async def get_open_interest(self, base_token: str, *, exchanges: Optional[str] = None, instrument_type: Optional[str] = None, time_period: Optional[str] = None) -> dict: ...
+
+    async def get_volume_timeseries(self, base_token: str, *, exchanges: Optional[str] = None, instrument_type: Optional[str] = None, time_period: Optional[str] = None) -> dict: ...
 
     # ── Transfers (rate-limited) ─────────────────────────────────────────
 

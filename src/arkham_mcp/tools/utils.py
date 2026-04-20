@@ -48,6 +48,25 @@ def compact_transfer(t: dict) -> dict:
     }
 
 
+def to_table(rows: list[dict], cols: Optional[list[str]] = None) -> dict:
+    """Convert a list of dicts to {cols, rows} table — eliminates repeated field names.
+
+    cols: explicit column order; if omitted, inferred from the union of all row keys
+    preserving insertion order of the first row.
+    """
+    if not rows:
+        return {"cols": cols or [], "rows": []}
+    if cols is None:
+        seen: dict[str, None] = {}
+        for row in rows:
+            seen.update(dict.fromkeys(row.keys()))
+        cols = list(seen)
+    return {
+        "cols": cols,
+        "rows": [[r.get(c) for c in cols] for r in rows],
+    }
+
+
 def meta_from_transfers(transfers: list[dict]) -> dict:
     """Compute _meta summary from raw transfer records."""
     if not transfers:

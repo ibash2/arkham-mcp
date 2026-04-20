@@ -217,6 +217,11 @@ class ArkhamClient:
         sort_dir: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        pricing_ids: Optional[str] = None,
+        balance_min: Optional[float] = None,
+        interval: Optional[str] = None,
+        order_by: Optional[str] = None,
+        order_dir: Optional[str] = None,
     ) -> dict:
         """Ranked list of entities with balance changes over a time interval."""
         params = self._build_params(
@@ -231,6 +236,11 @@ class ArkhamClient:
             sortDir=sort_dir,
             limit=limit,
             offset=offset,
+            pricingIds=pricing_ids,
+            balanceMin=balance_min,
+            interval=interval,
+            orderBy=order_by,
+            orderDir=order_dir,
         )
         return await self._get("/intelligence/entity_balance_changes", params or None)
 
@@ -282,16 +292,6 @@ class ArkhamClient:
         params = self._build_params(chains=chains)
         return await self._cached_get(f"/balances/entity/{entity}", TTL_MARKET, params or None)
 
-    async def get_entity_balances(
-        self,
-        entity: str,
-        *,
-        chains: Optional[str] = None,
-    ) -> dict:
-        """Current token holdings for an entity."""
-        params = self._build_params(chains=chains)
-        return await self._cached_get(f"/balances/entity/{entity}", TTL_MARKET, params or None)
-
     async def get_entity_portfolio_timeseries(
         self,
         entity: str,
@@ -308,11 +308,10 @@ class ArkhamClient:
         self,
         address: str,
         *,
-        time_gte: Optional[int] = None,
-        time_lte: Optional[int] = None,
+        time: Optional[int] = None,
     ) -> dict:
-        """Historical portfolio snapshots for an address."""
-        params = self._build_params(timeGte=time_gte, timeLte=time_lte)
+        """Portfolio snapshot for an address at a given Unix-ms timestamp (omit for current)."""
+        params = self._build_params(time=time)
         return await self._get(f"/portfolio/address/{address}", params or None)
 
     async def get_portfolio_timeseries(
@@ -485,12 +484,17 @@ class ArkhamClient:
 
     async def get_swaps(
         self,
-        address: Optional[str] = None,
+        base: Optional[str] = None,
         entity: Optional[str] = None,
         *,
         chains: Optional[str] = None,
         flow: Optional[str] = None,
         tokens: Optional[str] = None,
+        token_from: Optional[str] = None,
+        token_to: Optional[str] = None,
+        protocols: Optional[str] = None,
+        usd_gte: Optional[float] = None,
+        usd_lte: Optional[float] = None,
         time_gte: Optional[int] = None,
         time_lte: Optional[int] = None,
         time_last: Optional[str] = None,
@@ -499,19 +503,19 @@ class ArkhamClient:
         sort_key: Optional[str] = None,
         sort_dir: Optional[str] = None,
     ) -> dict:
-        """
-        DEX trade data.
-        Rate-limited to 1 request/second.
-        Requires either `address` or `entity`.
-        """
-        if not address and not entity:
-            raise ValueError("Either `address` or `entity` must be provided.")
+        """DEX trade data. Rate-limited to 1 request/second."""
+        if not base and not entity:
+            raise ValueError("Either `base` or `entity` must be provided.")
         params = self._build_params(
-            address=address,
+            base=base,
             entity=entity,
             chains=chains,
             flow=flow,
             tokens=tokens,
+            to=token_to,
+            protocols=protocols,
+            usdGte=usd_gte,
+            usdLte=usd_lte,
             timeGte=time_gte,
             timeLte=time_lte,
             timeLast=time_last,
@@ -520,6 +524,8 @@ class ArkhamClient:
             sortKey=sort_key,
             sortDir=sort_dir,
         )
+        if token_from is not None:
+            params["from"] = token_from
         return await self._get("/swaps", params, rate_limited=True)
 
     # ===================================================================
@@ -681,6 +687,65 @@ class ArkhamClient:
     async def get_arkm_circulating_supply(self) -> dict:
         """ARKM token circulating supply."""
         return await self._cached_get("/arkm/circulating", TTL_MARKET)
+
+    async def get_token_holders(
+        self,
+        token: str,
+        *,
+        group_by_entity: bool = False,
+    ) -> dict:
+        """Top 100 holders for a token (by CoinGecko ID or symbol)."""
+        params = self._build_params(groupByEntity=group_by_entity or None)
+        return await self._get(f"/token/holders/{token}", params or None)
+
+    async def get_token_market(self, token: str) -> dict:
+        """Current market data for a token: price, volume, market cap, change %."""
+        return await self._cached_get(f"/token/market/{token}", TTL_MARKET)
+
+    async def get_token_top_flow(
+        self,
+        token: str,
+        *,
+        time_last: Optional[str] = None,
+        chains: Optional[str] = None,
+    ) -> dict:
+        """Top on-chain flows for a token: largest movers in/out."""
+        params = self._build_params(timeLast=time_last, chains=chains)
+        return await self._get(f"/token/top_flow/{token}", params or None)
+
+    async def get_open_interest(
+        self,
+        base_token: str,
+        *,
+        exchanges: Optional[str] = None,
+        instrument_type: Optional[str] = None,
+        time_period: Optional[str] = None,
+    ) -> dict:
+        """USD open interest time series for a perpetual futures instrument."""
+        params = self._build_params(
+            baseToken=base_token,
+            exchanges=exchanges,
+            instrumentType=instrument_type,
+            timePeriod=time_period,
+        )
+        return await self._get("/marketdata/max_instrument_usd_open_interest_time_series", params or None)
+
+    async def get_volume_timeseries(
+        self,
+        base_token: str,
+        *,
+        exchanges: Optional[str] = None,
+        instrument_type: Optional[str] = None,
+        time_period: Optional[str] = None,
+    ) -> dict:
+        """USD volume time series across exchanges for a token."""
+        params = self._build_params(
+            baseToken=base_token,
+            exchanges=exchanges,
+            instrumentType=instrument_type,
+            timePeriod=time_period,
+        )
+        return await self._get("/marketdata/max_instrument_usd_volume_time_series", params or None)
 
     # ===================================================================
     # Pagination helper

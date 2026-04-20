@@ -5,9 +5,9 @@
       "command": "uv",
       "args": ["run", "arkham-mcp"],
       "env": {
-        "ARKHAM_API_KEY": "${ARKHAM_API_KEY}",
+	      "ARKHAM_COOKIE": "${ARKHAM_COOKIE}",
         "ARKHAM_BASE_URL": "https://api.arkm.com",
-        "ARKHAM_PROVIDER": "arkham"
+        "ARKHAM_PROVIDER": "playwright"
       }
     }
   }
