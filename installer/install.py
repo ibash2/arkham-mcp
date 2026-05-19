@@ -45,10 +45,10 @@ def select_clients() -> list[str]:
 
 
 def prompt_auth() -> tuple[str | None, str | None]:
-    console.print("\n[bold]Authentication[/bold] [dim](optional — only needed for personal account data)[/dim]")
-    console.print("  [cyan]1[/cyan]. Skip [dim](works for all public data)[/dim]")
+    console.print("\n[bold]Authentication[/bold] [dim](optional — only needed for your account data)[/dim]")
+    console.print("  [cyan]1[/cyan]. Guest     [dim](full public access)[/dim]")
     console.print("  [cyan]2[/cyan]. API key")
-    console.print("  [cyan]3[/cyan]. Browser cookie [dim](access your Arkham account)[/dim]")
+    console.print("  [cyan]3[/cyan]. Cookie    [dim](your account)[/dim]")
     console.print()
 
     choice = Prompt.ask("Choose", choices=["1", "2", "3"], default="1")
