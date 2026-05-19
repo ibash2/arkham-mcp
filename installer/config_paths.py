@@ -12,24 +12,31 @@ CLIENT_LABELS = {
 }
 
 
+def _get_appdata() -> Path:
+    appdata = os.environ.get("APPDATA")
+    if not appdata:
+        raise EnvironmentError("APPDATA environment variable is not set. Are you on Windows?")
+    return Path(appdata)
+
+
 def get_config_path(client: str, cwd: Path | None = None) -> Path:
     system = platform.system()
 
     if client == "claude-code":
         if system == "Windows":
-            return Path(os.environ["APPDATA"]) / "Claude" / ".claude.json"
+            return _get_appdata() / "Claude" / ".claude.json"
         return Path.home() / ".claude.json"
 
     if client == "claude-desktop":
         if system == "Darwin":
             return Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
         if system == "Windows":
-            return Path(os.environ["APPDATA"]) / "Claude" / "claude_desktop_config.json"
+            return _get_appdata() / "Claude" / "claude_desktop_config.json"
         return Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
 
     if client == "cursor":
         if system == "Windows":
-            return Path(os.environ["APPDATA"]) / "Cursor" / "mcp.json"
+            return _get_appdata() / "Cursor" / "mcp.json"
         return Path.home() / ".cursor" / "mcp.json"
 
     if client == "vscode":
