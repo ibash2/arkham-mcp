@@ -3,6 +3,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+# When invoked via `curl | bash`, bash's stdin is the pipe, not the terminal.
+# Reconnect stdin to /dev/tty so interactive prompts work.
+try:
+    if not sys.stdin.isatty():
+        sys.stdin = open("/dev/tty")
+except OSError:
+    pass
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config_paths import CLIENTS, CLIENT_LABELS, get_config_path
