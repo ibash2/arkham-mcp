@@ -45,7 +45,24 @@ Once connected, the agent can:
 ## Installation
 
 ```bash
-git clone https://github.com/your-org/arkham-mcp
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/ibash2/arkham-mcp/main/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/ibash2/arkham-mcp/main/install.ps1 | iex
+```
+
+The installer will:
+1. Install `uv` automatically if not present
+2. Clone the repo to `~/.local/share/arkham-mcp` (Linux/macOS) or `%LOCALAPPDATA%\arkham-mcp` (Windows)
+3. Ask which AI clients to configure (Claude Code, Claude Desktop, Cursor, VS Code)
+4. Ask for your API key or cookie
+5. Write the MCP config for each selected client
+
+### Manual installation
+
+```bash
+git clone https://github.com/ibash2/arkham-mcp
 cd arkham-mcp
 uv sync
 ```
