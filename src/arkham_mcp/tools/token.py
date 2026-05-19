@@ -2,6 +2,7 @@
 Token investigation tools — analyse a specific token from all angles.
 """
 
+import asyncio
 from typing import Optional
 
 from fastmcp import FastMCP
@@ -15,9 +16,11 @@ def register(mcp: FastMCP) -> None:
     @mcp.tool(
         name="get_token_holders",
         description=(
-            "Top 100 holders of a token. "
+            "Top holders of a token. "
             "token: CoinGecko ID or symbol (e.g. 'bitcoin', 'skyai'). "
             "group_by_entity: true = aggregate wallets belonging to the same entity. "
+            "min_usd: filter out holders below this USD value (default 0). "
+            "limit: max rows to return (default 20). "
             "Use to assess holder concentration and identify major participants."
         ),
     )
@@ -25,6 +28,8 @@ def register(mcp: FastMCP) -> None:
         token: str,
         ctx: Context,
         group_by_entity: bool = False,
+        min_usd: float = 0,
+        limit: int = 20,
     ) -> dict:
         raw = await ctx.lifespan_context["client"].get_token_holders(
             token, group_by_entity=group_by_entity
@@ -44,14 +49,18 @@ def register(mcp: FastMCP) -> None:
         rows = []
         for h in holders:
             entity = h.get("arkhamEntity") or {}
+            usd = h.get("usdValue") or h.get("usd") or 0
+            if usd < min_usd:
+                continue
             rows.append({
                 "address":     (h.get("address") or {}).get("address") or h.get("address"),
                 "entity":      entity.get("name"),
                 "entity_type": entity.get("type"),
                 "balance":     h.get("balance"),
-                "usd_value":   h.get("usdValue") or h.get("usd"),
+                "usd_value":   usd,
                 "pct_supply":  h.get("pctOfCirculatingSupply") or h.get("pct"),
             })
+        rows = rows[:limit]
         return {
             "token":   token,
             "holders": to_table(rows, ["address", "entity", "entity_type", "balance", "usd_value", "pct_supply"]),
@@ -113,6 +122,107 @@ def register(mcp: FastMCP) -> None:
                                        "contract", "in_usd", "out_usd", "net_usd",
                                        "in_value", "out_value"]),
         }
+
+    @mcp.tool(
+        name="get_token_liquidity_pools",
+        description=(
+            "Find liquidity pools for a token. "
+            "token: CoinGecko ID or symbol. "
+            "time_last: '24h' | '7d' | '30d' (default '7d')."
+        ),
+    )
+    async def get_token_liquidity_pools(
+        token: str,
+        ctx: Context,
+        time_last: str = "7d",
+    ) -> dict:
+        raw = await ctx.lifespan_context["client"].get_token_top_flow(token, time_last=time_last)
+        items = raw if isinstance(raw, list) else (raw.get("data") or raw.get("flows") or [])
+
+        seen: set[str] = set()
+        rows = []
+        for item in items:
+            addr_obj = item.get("address") or {}
+            if not addr_obj.get("contract"):
+                continue
+            entity = addr_obj.get("arkhamEntity") or {}
+            label = addr_obj.get("arkhamLabel") or {}
+            label_name = label.get("name") or ""
+            is_pool = entity.get("type") == "dex" or "pool" in label_name.lower()
+            if not is_pool:
+                continue
+            addr = addr_obj.get("address")
+            if not addr or addr in seen:
+                continue
+            seen.add(addr)
+            rows.append({
+                "address": addr,
+                "chain":   addr_obj.get("chain"),
+                "dex":     entity.get("name"),
+                "label":   label_name,
+            })
+
+        return {
+            "token": token,
+            "pools": to_table(rows, ["address", "chain", "dex", "label"]),
+        }
+
+    @mcp.tool(
+        name="analyze_exit_liquidity",
+        description=(
+            "Analyze whether one or more wallets can exit a token position without crashing the price. "
+            "Returns a step-by-step instruction plan — follow every step in order. "
+            "token: CoinGecko ID or symbol. "
+            "addresses: list of wallet addresses to check (e.g. ['0xabc...', '0xdef...']). "
+            "Use when you want to assess sell pressure risk or detect 'trapped' holders."
+        ),
+    )
+    async def analyze_exit_liquidity(
+        token: str,
+        addresses: list[str],
+        ctx: Context,
+    ) -> str:
+        addr_list = "\n".join(f'  - `{a}`' for a in addresses)
+        addrs_repr = ", ".join(f'"{a}"' for a in addresses)
+        return f"""Exit liquidity analysis for `{token}` — execute every step in order:
+
+**Step 1 — Token market data**
+Call `get_token_market("{token}")`.
+- Note current price, market cap, 24h volume.
+
+**Step 2 — Wallet holdings**
+For each address, call `get_portfolio(address)`:
+{addr_list}
+- Find the `{token}` position: balance and USD value.
+- Sum total USD held across all wallets — this is the combined sell pressure.
+
+**Step 3 — Find liquidity pools**
+Call `get_token_liquidity_pools("{token}")`.
+- List all DEX pools: address, chain, DEX name.
+
+**Step 4 — Pool reserves**
+For each pool address from Step 3, call `get_portfolio(pool_address)`.
+- Extract token reserves: how much `{token}` and how much paired asset (USDT/BNB/ETH etc.) is in each pool.
+- Sum all `{token}` reserves across pools — this is total available liquidity.
+
+**Step 5 — Price impact calculation**
+For each pool apply x·y=k formula:
+- reserve_token = USD value of `{token}` side of pool
+- price_impact = sell_usd / (reserve_token + sell_usd) × 100%
+
+Calculate for each wallet individually and for all wallets combined ({addrs_repr}):
+- What % price drop if one wallet sells?
+- What % price drop if all wallets sell simultaneously?
+
+**Step 6 — Conclusion**
+Answer these questions:
+1. Can the wallets exit without moving price more than 5–10%?
+2. If no — what is the realistic exit price (accounting for slippage)?
+3. Are the holders likely "trapped" (position too large relative to liquidity)?
+4. Is there asymmetry — do some wallets hold far more than the pool can absorb?
+
+Write a concise verdict: EXIT POSSIBLE / PARTIALLY POSSIBLE / TRAPPED.
+"""
 
     @mcp.tool(
         name="investigate_token",

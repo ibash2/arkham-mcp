@@ -46,12 +46,3 @@ def register(mcp: FastMCP) -> None:
     async def get_contract(chain: str, address: str, ctx: Context) -> dict:
         return await ctx.lifespan_context["client"].get_contract(chain, address)
 
-    @mcp.tool(
-        name="get_cluster_summary",
-        description=(
-            "Get summary statistics for a blockchain address cluster by cluster ID. "
-            "Cluster IDs are returned in enriched address lookups (clusterId field)."
-        ),
-    )
-    async def get_cluster_summary(cluster_id: str, ctx: Context) -> dict:
-        return await ctx.lifespan_context["client"].get_cluster_summary(cluster_id)

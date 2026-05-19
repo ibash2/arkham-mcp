@@ -17,4 +17,3 @@ venv
 dist
 build
 poetry.lock
-PUBLICATION_PLAN.md

@@ -63,8 +63,6 @@ class ArkhamClient:
         cookie: Optional[str] = None,
         base_url: str = BASE_URL,
     ):
-        if not api_key and not cookie:
-            raise ValueError("Either api_key or cookie must be provided.")
         self.api_key = api_key
         self.cookie = cookie
         self.base_url = base_url.rstrip("/")

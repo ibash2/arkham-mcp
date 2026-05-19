@@ -1,11 +1,10 @@
 from typing import Optional
 
-from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # --- auth (хотя бы одно обязательно) ---
+    # --- auth (опционально: без авторизации работает как гость) ---
     api_key: Optional[str] = None
     cookie: Optional[str] = None  # raw Cookie header: "name=value; name2=value2"
 
@@ -13,14 +12,6 @@ class Settings(BaseSettings):
     provider: str = "playwright"  # имя в providers/_REGISTRY
 
     model_config = {"env_prefix": "ARKHAM_"}
-
-    @model_validator(mode="after")
-    def check_auth_provided(self) -> "Settings":
-        if not self.api_key and not self.cookie:
-            raise ValueError(
-                "Authentication required: set ARKHAM_API_KEY or ARKHAM_COOKIE (or both)."
-            )
-        return self
 
 
 _settings: Optional["Settings"] = None

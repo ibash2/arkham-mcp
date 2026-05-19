@@ -154,64 +154,6 @@ def register(mcp: FastMCP) -> None:
         return result
 
     @mcp.tool(
-        name="compare_addresses",
-        description=(
-            "Compare multiple blockchain addresses side by side. "
-            "Returns a table with entity, labels, total USD holdings, and chains for each. "
-            "Accepts up to 1000 addresses. "
-            "Useful for determining if a group of addresses belongs to the same entity."
-        ),
-    )
-    async def compare_addresses(addresses: list[str], ctx: Context) -> list[dict]:
-        if not addresses:
-            return []
-
-        client = ctx.lifespan_context["client"]
-
-        enriched_batch, *balances_list = await asyncio.gather(
-            client.batch_addresses_enriched(addresses),
-            *[client.get_address_balances(addr) for addr in addresses],
-            return_exceptions=True,
-        )
-
-        if isinstance(enriched_batch, Exception):
-            raise RuntimeError(f"Batch enriched lookup failed: {enriched_batch}")
-
-        results = []
-        for i, item in enumerate(enriched_batch):
-            addr = addresses[i]
-            if not isinstance(item, dict):
-                results.append({"address": addr, "error": f"unexpected response: {item}"})
-                continue
-            entity = item.get("arkhamEntity") or {}
-            balances = balances_list[i] if i < len(balances_list) else None
-
-            total_usd = None
-            top_token = None
-            if not isinstance(balances, Exception) and balances:
-                tokens = sorted(
-                    balances.get("tokens") or balances.get("data") or [],
-                    key=lambda t: t.get("usdValue", 0),
-                    reverse=True,
-                )
-                total_usd = sum(t.get("usdValue", 0) for t in tokens)
-                top_token = tokens[0].get("token", {}).get("symbol") if tokens else None
-
-            results.append({
-                "address":     addr,
-                "entity_name": entity.get("name"),
-                "entity_type": entity.get("type"),
-                "labels":      ", ".join(lbl.get("name", "") for lbl in (item.get("arkhamLabel") or [])),
-                "tags":        ", ".join(t.get("name", "") for t in (item.get("populatedTags") or [])),
-                "chains":      ", ".join(item.get("chains") or []),
-                "total_usd":   total_usd,
-                "top_token":   top_token,
-                "cluster_id":  item.get("clusterId"),
-            })
-
-        return to_table(results)
-
-    @mcp.tool(
         name="investigate_address",
         description=(
             "ALWAYS call this tool first when asked to investigate, analyze, research, "
