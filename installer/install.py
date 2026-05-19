@@ -47,18 +47,18 @@ def select_clients() -> list[str]:
 def prompt_auth() -> tuple[str | None, str | None]:
     console.print("\n[bold]Authentication[/bold] [dim](optional — only needed for your account data)[/dim]")
     console.print("  [cyan]1[/cyan]. Guest     [dim](full public access)[/dim]")
-    console.print("  [cyan]2[/cyan]. API key")
-    console.print("  [cyan]3[/cyan]. Cookie    [dim](your account)[/dim]")
+    console.print("  [cyan]2[/cyan]. Cookie    [dim](your account)[/dim]")
+    console.print("  [cyan]3[/cyan]. API key")
     console.print()
 
     choice = Prompt.ask("Choose", choices=["1", "2", "3"], default="1")
 
     if choice == "2":
-        key = Prompt.ask("ARKHAM_API_KEY", password=True)
-        return key, None
-    if choice == "3":
         cookie = Prompt.ask("ARKHAM_COOKIE value", password=True)
         return None, cookie
+    if choice == "3":
+        key = Prompt.ask("ARKHAM_API_KEY", password=True)
+        return key, None
     return None, None
 
 
