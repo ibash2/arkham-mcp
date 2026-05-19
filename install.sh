@@ -41,4 +41,4 @@ uv sync --project "${INSTALL_DIR}" --quiet
 ok "Dependencies installed"
 
 info "Launching installer..."
-uv run --project "${INSTALL_DIR}" python "${INSTALL_DIR}/installer/install.py"
+uv run --project "${INSTALL_DIR}" python "${INSTALL_DIR}/installer/install.py" < /dev/tty
