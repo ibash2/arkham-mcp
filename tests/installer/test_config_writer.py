@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from unittest.mock import patch
 import sys
 import pytest
 
@@ -56,7 +57,7 @@ def test_overwrites_existing_arkham_entry(tmp_path):
     assert result["mcpServers"]["arkham"] == new_entry
 
 
-def test_write_is_atomic(tmp_path, monkeypatch):
+def test_write_is_atomic(tmp_path):
     target = tmp_path / "config.json"
     entry = {"type": "stdio"}
     calls = []
@@ -66,12 +67,11 @@ def test_write_is_atomic(tmp_path, monkeypatch):
         calls.append((src, dst))
         real_replace(src, dst)
 
-    monkeypatch.setattr(os, "replace", spy_replace)
-    cw.merge_arkham_entry(target, entry)
+    with patch("config_writer.os.replace", side_effect=spy_replace):
+        cw.merge_arkham_entry(target, entry)
 
     assert len(calls) == 1
-    src, dst = calls[0]
-    assert Path(dst) == target
+    assert Path(calls[0][1]) == target
 
 
 def test_no_temp_file_left_after_write(tmp_path):
