@@ -60,7 +60,7 @@ Unit tests use mocked providers and run offline. Integration tests are marked wi
 ## Project structure
 
 ```
-src/arkham_mcp/
+src/
   server.py          # FastMCP entry point, tool registration
   config.py          # Settings from ARKHAM_* env vars
   client.py          # ArkhamClient (aiohttp, auth, rate limiting)
@@ -90,7 +90,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for a deeper explanation of how the piece
 
 ## Adding a new tool
 
-1. Find or create the right module in `src/arkham_mcp/tools/`
+1. Find or create the right module in `src/tools/`
 2. Add your function inside the `register(mcp)` function:
    ```python
    @mcp.tool(name="my_tool", description="What it does and when to use it.")

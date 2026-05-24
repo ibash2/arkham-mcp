@@ -8,12 +8,12 @@ Tests for tools/investigation.py:
 import pytest
 
 from tests.conftest import make_client, make_ctx
-from arkham_mcp.tools.forensics import _extract_risk_flags
+from src.tools.forensics import _extract_risk_flags
 
 
 async def get_tool(name: str):
     from fastmcp import FastMCP
-    from arkham_mcp.tools import forensics, transfers
+    from src.tools import forensics, transfers
 
     mcp = FastMCP("test")
     forensics.register(mcp)

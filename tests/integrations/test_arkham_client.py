@@ -1,9 +1,9 @@
 import pytest
 
-from arkham_mcp.client import ArkhamClient
+from src.client import ArkhamClient
 
-from arkham_mcp.providers import playwright
-from arkham_mcp.config import Settings
+from src.providers import playwright
+from src.config import Settings
 
 
 async def test_get_transfers():

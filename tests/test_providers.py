@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from contextlib import asynccontextmanager
 
-from arkham_mcp.providers.base import DataProvider
+from src.providers.base import DataProvider
 from tests.conftest import make_client
 
 
@@ -52,8 +52,8 @@ class TestProviderRegistry:
 
     @pytest.mark.asyncio
     async def test_get_provider_arkham_returns_provider(self):
-        from arkham_mcp.providers import get_provider, _REGISTRY
-        from arkham_mcp.config import Settings
+        from src.providers import get_provider, _REGISTRY
+        from src.config import Settings
 
         settings = Settings(api_key="test-key", provider="arkham")
 
@@ -69,8 +69,8 @@ class TestProviderRegistry:
 
     @pytest.mark.asyncio
     async def test_unknown_provider_raises_value_error(self):
-        from arkham_mcp.providers import get_provider
-        from arkham_mcp.config import Settings
+        from src.providers import get_provider
+        from src.config import Settings
 
         settings = Settings(api_key="test-key", provider="nonexistent")
 
@@ -80,8 +80,8 @@ class TestProviderRegistry:
 
     @pytest.mark.asyncio
     async def test_error_message_lists_available_providers(self):
-        from arkham_mcp.providers import get_provider
-        from arkham_mcp.config import Settings
+        from src.providers import get_provider
+        from src.config import Settings
 
         settings = Settings(api_key="key", provider="bad")
 
@@ -93,7 +93,7 @@ class TestProviderRegistry:
 
     def test_custom_provider_can_be_registered(self):
         """Verify the registry is a plain dict that can be extended."""
-        from arkham_mcp.providers import _REGISTRY
+        from src.providers import _REGISTRY
 
         original = dict(_REGISTRY)
         try:
@@ -111,12 +111,12 @@ class TestArkhamProvider:
     @pytest.mark.asyncio
     async def test_create_provider_yields_data_provider(self):
         """ArkhamClient yielded by create_provider must satisfy DataProvider."""
-        from arkham_mcp.providers.arkham import create_provider
-        from arkham_mcp.config import Settings
+        from src.providers.arkham import create_provider
+        from src.config import Settings
 
         settings = Settings(api_key="test-key")
 
-        with patch("arkham_mcp.client.aiohttp.ClientSession") as mock_session_cls:
+        with patch("src.client.aiohttp.ClientSession") as mock_session_cls:
             mock_session_cls.return_value.close = AsyncMock()
 
             async with create_provider(settings) as provider:

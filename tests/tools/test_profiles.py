@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, patch
 from tests.conftest import make_client, make_ctx
 
 # Import the pure helper directly
-from arkham_mcp.tools.profiles import _top_balances
+from src.tools.profiles import _top_balances
 
 
 # ── _top_balances ──────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ class TestResolveAddress:
 
     @pytest.mark.asyncio
     async def test_identified_address(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -94,7 +94,7 @@ class TestResolveAddress:
 
     @pytest.mark.asyncio
     async def test_unidentified_address(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -120,7 +120,7 @@ class TestResolveAddress:
 
     @pytest.mark.asyncio
     async def test_enriched_fetch_failure_degrades_gracefully(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -141,7 +141,7 @@ class TestResolveAddress:
 
     @pytest.mark.asyncio
     async def test_balances_fetch_failure_degrades_gracefully(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -165,7 +165,7 @@ class TestGetEntityProfile:
 
     @pytest.mark.asyncio
     async def test_full_profile(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -185,7 +185,7 @@ class TestGetEntityProfile:
 
     @pytest.mark.asyncio
     async def test_partial_failure_still_returns_result(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -211,7 +211,7 @@ class TestCompareAddresses:
 
     @pytest.mark.asyncio
     async def test_returns_empty_for_empty_input(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -224,7 +224,7 @@ class TestCompareAddresses:
 
     @pytest.mark.asyncio
     async def test_compare_two_addresses(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -244,7 +244,7 @@ class TestCompareAddresses:
 
     @pytest.mark.asyncio
     async def test_batch_failure_raises_runtime_error(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -260,7 +260,7 @@ class TestCompareAddresses:
 
     @pytest.mark.asyncio
     async def test_total_usd_computed_correctly(self):
-        from arkham_mcp.tools.profiles import register
+        from src.tools.profiles import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")

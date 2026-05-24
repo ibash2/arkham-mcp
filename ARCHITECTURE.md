@@ -86,7 +86,7 @@ Tool call from AI
 
 ## Adding a new provider
 
-1. Create `src/arkham_mcp/providers/myname.py`
+1. Create `src/providers/myname.py`
 2. Implement all methods from `DataProvider` in `base.py`
 3. Expose a factory:
    ```python
