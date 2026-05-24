@@ -37,28 +37,37 @@ def register(mcp: FastMCP) -> None:
         if isinstance(raw, list):
             holders = raw
         else:
-            holders = (
-                raw.get("holders")
-                or raw.get("topHolders")
-                or raw.get("data")
-                or raw.get("accounts")
-                or []
-            )
+            addr_top = raw.get("addressTopHolders") or {}
+            if isinstance(addr_top, dict) and addr_top:
+                holders = [h for chain in addr_top.values() for h in (chain or [])]
+            else:
+                holders = (
+                    raw.get("holders")
+                    or raw.get("topHolders")
+                    or raw.get("data")
+                    or raw.get("accounts")
+                    or []
+                )
         if not holders and isinstance(raw, dict):
             return {"token": token, "_raw_keys": list(raw.keys()), "_raw_sample": raw}
         rows = []
         for h in holders:
-            entity = h.get("arkhamEntity") or {}
+            addr_obj = h.get("address") or {}
+            entity = (
+                addr_obj.get("arkhamEntity")
+                or h.get("arkhamEntity")
+                or {}
+            )
             usd = h.get("usdValue") or h.get("usd") or 0
             if usd < min_usd:
                 continue
             rows.append({
-                "address":     (h.get("address") or {}).get("address") or h.get("address"),
+                "address":     addr_obj.get("address") if isinstance(addr_obj, dict) else addr_obj,
                 "entity":      entity.get("name"),
                 "entity_type": entity.get("type"),
                 "balance":     h.get("balance"),
                 "usd_value":   usd,
-                "pct_supply":  h.get("pctOfCirculatingSupply") or h.get("pct"),
+                "pct_supply":  h.get("pctOfCirculatingSupply") or h.get("pctOfCap") or h.get("pct"),
             })
         rows = rows[:limit]
         return {
