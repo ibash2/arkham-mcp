@@ -124,34 +124,30 @@ class PlaywrightArkhamClient(ArkhamClient):
         )
 
     async def __aenter__(self) -> "PlaywrightArkhamClient":
-        browser_ctx = await self._driver.prepare_browser()
+        # Browser starts lazily on first request — keeps MCP handshake fast.
+        return self
 
-        # Set cookies on the browser context — browser sends them automatically.
-        # We CANNOT set Cookie in fetch() headers (blocked by browser security).
+    async def __aexit__(self, *_) -> None:
+        await self._driver.close()
+
+    async def _init_browser(self) -> None:
+        """Launch browser and solve Cloudflare on first use."""
+        if self._driver._prepared_map.get("browser"):
+            return
+        browser_ctx = await self._driver.prepare_browser()
         if self.cookie:
             await browser_ctx.add_cookies(
                 _parse_cookie_header(self.cookie, domain=".arkm.com")
             )
-
-        # Navigate to intel.arkm.com (the UI) — patchright handles the Cloudflare
-        # challenge there. Cloudflare sets cf_clearance on domain=.arkm.com, so it
-        # is valid for api.arkm.com requests made later with credentials:'include'.
         page = await self._driver.get_page(browser_ctx)
         await page.goto(
             "https://intel.arkm.com",
             wait_until="load",
             timeout=self._driver.timeout,
         )
-
-        # If Cloudflare shows a challenge, try to solve it automatically.
         title = await page.title()
         if "Just a moment" in title:
             await _solve_cloudflare_challenge(page, timeout=self._driver.timeout)
-
-        return self
-
-    async def __aexit__(self, *_) -> None:
-        await self._driver.close()
 
     async def _request(
         self,
@@ -166,12 +162,11 @@ class PlaywrightArkhamClient(ArkhamClient):
         if rate_limited:
             await self._slow_limiter.acquire()
 
+        await self._init_browser()
+
         url = self._url(path)
         full_url = f"{url}?{urlencode(params)}" if params else url
 
-        # Payload hash headers (same as aiohttp client).
-        # Cookie is NOT set here — browser sends cf_clearance automatically
-        # because credentials:'include' is set on the fetch call.
         request_headers: dict[str, str] = {
             "X-Payload": self.generate_hash(url),
             "X-Timestamp": str(int(time.time())),

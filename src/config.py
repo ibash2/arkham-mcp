@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     base_url: str = "https://api.arkm.com"
     provider: str = "playwright"  # имя в providers/_REGISTRY
+    headless: bool = True
 
     model_config = {"env_prefix": "ARKHAM_"}
 

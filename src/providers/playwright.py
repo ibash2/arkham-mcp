@@ -29,6 +29,7 @@ async def create_provider(settings: Settings) -> AsyncIterator[DataProvider]:
         api_key=settings.api_key,
         cookie=settings.cookie,
         base_url=settings.base_url,
+        headless=settings.headless,
     ) as client:
         assert isinstance(client, DataProvider), (
             "PlaywrightArkhamClient does not fully implement DataProvider."
