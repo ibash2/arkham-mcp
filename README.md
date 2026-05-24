@@ -44,11 +44,7 @@ The installer asks which AI client to configure, then walks you through access s
 
 ### Free — Browser session (recommended)
 
-No API key needed. Works through your free Arkham account.
-
-1. Create a free account at [intel.arkm.com](https://intel.arkm.com)
-2. Open DevTools (F12) → Network tab → click any request → copy the `Cookie:` header value
-3. During install, choose **Cookie** and paste it
+No API key needed. Just create a free account at [intel.arkm.com](https://intel.arkm.com) — the installer will guide you through the rest.
 
 This gives you full access to everything Arkham has.
 
@@ -79,7 +75,7 @@ For advanced users or automation. Get a key at [intel.arkm.com](https://intel.ar
 
 ## Troubleshooting
 
-**Cookie expired** → Log into intel.arkm.com again and copy a fresh `Cookie:` header.
+**Session expired** → Log out and back into intel.arkm.com, then run the installer again to refresh your session.
 
 **`403 Forbidden`** → Switch to Cookie mode — this bypasses Cloudflare restrictions.
 
