@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     base_url: str = "https://api.arkm.com"
     provider: str = "playwright"  # имя в providers/_REGISTRY
     headless: bool = True
+    proxy: Optional[str] = None  # e.g. "socks5://127.0.0.1:2080"
 
     model_config = {"env_prefix": "ARKHAM_"}
 

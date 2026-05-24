@@ -25,6 +25,7 @@ class PlaywrightWebDriverHttp:
     headers: dict = field(default_factory=dict, kw_only=True)
     timeout: int = field(default_factory=lambda: 5000, kw_only=True)
     headless: bool = field(default=True, kw_only=True)
+    proxy: str | None = field(default=None, kw_only=True)
     _prepared_map: dict = field(default_factory=dict, kw_only=True)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, kw_only=True)
 
@@ -35,18 +36,22 @@ class PlaywrightWebDriverHttp:
         browser = self._prepared_map.get("browser")
         if not browser:
             context = await PlaywrightContextManager().start()
+            launch_args = [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--lang=ru-RU,ru;q=0.9",
+                "--disable-sync",
+                "--disable-features=IsolateOrigins,site-per-process",
+                "--disable-blink-features=AutomationControlled",
+            ]
+            if not self.proxy:
+                launch_args.append("--no-proxy-server")
+
+            proxy_config = {"server": self.proxy} if self.proxy else None
             browser = await context.chromium.launch(
                 headless=self.headless,
-                args=[
-                    "--no-sandbox",
-                    "--disable-setuid-sandbox",
-                    "--lang=ru-RU,ru;q=0.9",
-                    "--disable-sync",
-                    "--disable-features=IsolateOrigins,site-per-process",
-                    "--disable-blink-features=AutomationControlled",
-                    # Direct connection required for Cloudflare bypass (residential IP fingerprint).
-                    "--no-proxy-server",
-                ],
+                args=launch_args,
+                proxy=proxy_config,
             )
             browser = await browser.new_context(
                 user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",

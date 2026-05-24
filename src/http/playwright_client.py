@@ -116,11 +116,13 @@ class PlaywrightArkhamClient(ArkhamClient):
         base_url: str = "https://api.arkm.com",
         headless: bool = True,
         timeout_ms: int = BROWSER_TIMEOUT_MS,
+        proxy: Optional[str] = None,
     ):
         super().__init__(api_key=api_key, cookie=cookie, base_url=base_url)
         self._driver = PlaywrightWebDriverHttp(
             timeout=timeout_ms,
             headless=headless,
+            proxy=proxy,
         )
 
     async def __aenter__(self) -> "PlaywrightArkhamClient":
@@ -142,7 +144,7 @@ class PlaywrightArkhamClient(ArkhamClient):
         page = await self._driver.get_page(browser_ctx)
         await page.goto(
             "https://intel.arkm.com",
-            wait_until="load",
+            wait_until="domcontentloaded",
             timeout=self._driver.timeout,
         )
         title = await page.title()
