@@ -149,9 +149,6 @@ class ArkhamClient:
         cache_key = f"{path}?{params_key}"
         return await self.cache.get_or_fetch(cache_key, ttl, lambda: self._get(path, params))
 
-    # ===================================================================
-    # Intelligence — Address
-    # ===================================================================
 
     async def get_address(self, address: str) -> dict:
         """Single address intelligence lookup."""
@@ -185,9 +182,6 @@ class ArkhamClient:
             raise ValueError("Batch size cannot exceed 1000 addresses.")
         return await self._post("/intelligence/address_enriched/batch", json={"addresses": addresses})
 
-    # ===================================================================
-    # Intelligence — Entity
-    # ===================================================================
 
     async def get_entity(self, entity: str) -> dict:
         """Entity overview data."""
@@ -242,9 +236,6 @@ class ArkhamClient:
         )
         return await self._get("/intelligence/entity_balance_changes", params or None)
 
-    # ===================================================================
-    # Intelligence — Token & Contract
-    # ===================================================================
 
     async def get_token_by_id(self, coingecko_id: str) -> dict:
         """Token data by CoinGecko pricing ID."""
@@ -258,17 +249,11 @@ class ArkhamClient:
         """Contract metadata including deployer info."""
         return await self._cached_get(f"/intelligence/contract/{chain}/{address}", TTL_ADDRESS)
 
-    # ===================================================================
-    # Intelligence — Search
-    # ===================================================================
 
     async def search(self, query: str) -> dict:
         """Full-text search across entities, addresses, and tokens."""
         return await self._get("/intelligence/search", params={"query": query})
 
-    # ===================================================================
-    # Balances & Portfolio
-    # ===================================================================
 
     async def get_address_balances(
         self,
@@ -332,9 +317,6 @@ class ArkhamClient:
         )
         return await self._get(f"/portfolio/timeSeries/address/{address}", params or None)
 
-    # ===================================================================
-    # Historical Flow & Balance
-    # ===================================================================
 
     async def get_address_history(
         self,
@@ -408,9 +390,6 @@ class ArkhamClient:
         params = self._build_params(timeGte=time_gte, timeLte=time_lte, timeLast=time_last, chains=chains)
         return await self._get(f"/history/entity/{entity}", params or None)
 
-    # ===================================================================
-    # Counterparties  (rate-limited: 1 req/sec)
-    # ===================================================================
 
     async def get_counterparties(
         self,
@@ -476,9 +455,6 @@ class ArkhamClient:
         )
         return await self._get(f"/counterparties/entity/{entity}", params or None, rate_limited=True)
 
-    # ===================================================================
-    # Swaps / DEX  (rate-limited: 1 req/sec)
-    # ===================================================================
 
     async def get_swaps(
         self,
@@ -526,9 +502,6 @@ class ArkhamClient:
             params["from"] = token_from
         return await self._get("/swaps", params, rate_limited=True)
 
-    # ===================================================================
-    # Loans / DeFi positions
-    # ===================================================================
 
     async def get_address_loans(self, address: str) -> dict:
         """Loaned, supplied, and borrowed DeFi positions for an address."""
@@ -538,17 +511,11 @@ class ArkhamClient:
         """Loaned, supplied, and borrowed DeFi positions for an entity."""
         return await self._cached_get(f"/loans/entity/{entity}", TTL_ENTITY)
 
-    # ===================================================================
-    # Cluster
-    # ===================================================================
 
     async def get_cluster_summary(self, cluster_id: str) -> dict:
         """Summary statistics for a blockchain address cluster."""
         return await self._cached_get(f"/cluster/{cluster_id}/summary", TTL_ADDRESS)
 
-    # ===================================================================
-    # Update / Feed endpoints  (cursor-paginated)
-    # ===================================================================
 
     async def get_address_updates(
         self,
@@ -626,9 +593,6 @@ class ArkhamClient:
             params["to"] = to_ts
         return await self._get("/intelligence/tags/updates", params or None)
 
-    # ===================================================================
-    # Network & Market Data
-    # ===================================================================
 
     async def get_chains(self) -> list:
         """List of all supported blockchain networks."""
@@ -745,9 +709,6 @@ class ArkhamClient:
         )
         return await self._get("/marketdata/max_instrument_usd_volume_time_series", params or None)
 
-    # ===================================================================
-    # Pagination helper
-    # ===================================================================
 
     async def paginate_updates(
         self,
@@ -775,9 +736,6 @@ class ArkhamClient:
             if not page_token:
                 break
 
-    # ===================================================================
-    # Transfers  (rate-limited: 1 req/sec)
-    # ===================================================================
 
     async def get_transfers(
         self,
