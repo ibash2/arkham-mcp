@@ -87,6 +87,14 @@ For advanced users or automation. Get a key at [intel.arkm.com](https://intel.ar
 
 ---
 
+## For developers
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to set up a local dev environment, run tests, and add new tools or providers.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for how the codebase is structured.
+
+---
+
 ## License
 
 MIT
