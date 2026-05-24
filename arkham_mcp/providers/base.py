@@ -1,13 +1,12 @@
 """
-DataProvider — Protocol (interface) for blockchain data sources.
+DataProvider protocol — the interface all providers must implement.
 
-Any class that implements all these async methods satisfies the Protocol
-without explicit inheritance (structural subtyping).
+Structural subtyping: no inheritance needed, just implement the methods.
 
 To add a new provider:
-  1. Implement all methods below in a new file, e.g. providers/nansen.py
+  1. Create providers/<name>.py with a create_provider(settings) async context manager
   2. Register it in providers/__init__.py
-  3. Set ARKHAM_PROVIDER=nansen in .env
+  3. Set ARKHAM_PROVIDER=<name> in .env
 """
 
 from typing import Optional, Protocol, runtime_checkable
@@ -16,7 +15,7 @@ from typing import Optional, Protocol, runtime_checkable
 @runtime_checkable
 class DataProvider(Protocol):
 
-    # ── Intelligence / Address ──────────────────────────────────────────
+    # address
 
     async def get_address(self, address: str) -> dict: ...
 
@@ -33,7 +32,7 @@ class DataProvider(Protocol):
 
     async def batch_addresses_enriched(self, addresses: list[str]) -> list[dict]: ...
 
-    # ── Intelligence / Entity ───────────────────────────────────────────
+    # entity
 
     async def get_entity(self, entity: str) -> dict: ...
 
@@ -62,7 +61,7 @@ class DataProvider(Protocol):
         order_dir: Optional[str] = None,
     ) -> dict: ...
 
-    # ── Intelligence / Token & Contract ────────────────────────────────
+    # token & contract
 
     async def get_token_by_id(self, coingecko_id: str) -> dict: ...
 
@@ -70,34 +69,17 @@ class DataProvider(Protocol):
 
     async def get_contract(self, chain: str, address: str) -> dict: ...
 
-    # ── Search ──────────────────────────────────────────────────────────
-
     async def search(self, query: str) -> dict: ...
 
-    # ── Balances ────────────────────────────────────────────────────────
+    # balances
 
-    async def get_address_balances(
-        self,
-        address: str,
-        *,
-        chains: Optional[str] = None,
-    ) -> dict: ...
+    async def get_address_balances(self, address: str, *, chains: Optional[str] = None) -> dict: ...
 
-    async def get_entity_balances(
-        self,
-        entity: str,
-        *,
-        chains: Optional[str] = None,
-    ) -> dict: ...
+    async def get_entity_balances(self, entity: str, *, chains: Optional[str] = None) -> dict: ...
 
-    # ── Portfolio ───────────────────────────────────────────────────────
+    # portfolio
 
-    async def get_portfolio(
-        self,
-        address: str,
-        *,
-        time: Optional[int] = None,
-    ) -> dict: ...
+    async def get_portfolio(self, address: str, *, time: Optional[int] = None) -> dict: ...
 
     async def get_portfolio_timeseries(
         self,
@@ -117,7 +99,7 @@ class DataProvider(Protocol):
         chains: Optional[str] = None,
     ) -> dict: ...
 
-    # ── Historical Flow & Balance ───────────────────────────────────────
+    # history & flow
 
     async def get_address_history(
         self,
@@ -161,7 +143,7 @@ class DataProvider(Protocol):
         chains: Optional[str] = None,
     ) -> dict: ...
 
-    # ── Counterparties (rate-limited) ───────────────────────────────────
+    # counterparties (rate-limited: 1 req/sec)
 
     async def get_counterparties(
         self,
@@ -193,7 +175,7 @@ class DataProvider(Protocol):
         sort_dir: Optional[str] = None,
     ) -> dict: ...
 
-    # ── Swaps / DEX (rate-limited) ──────────────────────────────────────
+    # swaps / DEX (rate-limited: 1 req/sec)
 
     async def get_swaps(
         self,
@@ -215,17 +197,15 @@ class DataProvider(Protocol):
         sort_dir: Optional[str] = None,
     ) -> dict: ...
 
-    # ── Loans / DeFi ────────────────────────────────────────────────────
+    # loans / DeFi
 
     async def get_address_loans(self, address: str) -> dict: ...
 
     async def get_entity_loans(self, entity: str) -> dict: ...
 
-    # ── Cluster ──────────────────────────────────────────────────────────
-
     async def get_cluster_summary(self, cluster_id: str) -> dict: ...
 
-    # ── Network & Market ────────────────────────────────────────────────
+    # network & market
 
     async def get_chains(self) -> list: ...
 
@@ -256,7 +236,7 @@ class DataProvider(Protocol):
 
     async def get_volume_timeseries(self, base_token: str, *, exchanges: Optional[str] = None, instrument_type: Optional[str] = None, time_period: Optional[str] = None) -> dict: ...
 
-    # ── Transfers (rate-limited) ─────────────────────────────────────────
+    # transfers (rate-limited: 1 req/sec)
 
     async def get_transfers(
         self,
