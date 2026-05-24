@@ -9,7 +9,7 @@ Tests for ArkhamClient authentication modes:
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from src.arkham_mcp.client import ArkhamClient
+from arkham_mcp.client import ArkhamClient
 
 
 class TestArkhamClientAuth:
@@ -55,7 +55,7 @@ class TestArkhamClientAuth:
     @pytest.mark.asyncio
     async def test_session_created_with_api_key_header(self):
         client = ArkhamClient(api_key="my-key")
-        with patch("src.arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
+        with patch("arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
             mock_cls.return_value = AsyncMock()
             await client.__aenter__()
             mock_cls.assert_called_once_with(
@@ -67,7 +67,7 @@ class TestArkhamClientAuth:
     async def test_session_created_with_cookie_header(self):
         cookie = "AMP_f072531383=JTdC"
         client = ArkhamClient(cookie=cookie)
-        with patch("src.arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
+        with patch("arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
             mock_cls.return_value = AsyncMock()
             await client.__aenter__()
             mock_cls.assert_called_once_with(
@@ -78,7 +78,7 @@ class TestArkhamClientAuth:
     @pytest.mark.asyncio
     async def test_session_created_with_both_headers(self):
         client = ArkhamClient(api_key="key", cookie="c=v")
-        with patch("src.arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
+        with patch("arkham_mcp.client.aiohttp.ClientSession") as mock_cls:
             mock_cls.return_value = AsyncMock()
             await client.__aenter__()
             mock_cls.assert_called_once_with(
@@ -91,27 +91,27 @@ class TestSettingsAuth:
 
     def test_raises_when_neither_set(self):
         from pydantic import ValidationError
-        from src.arkham_mcp.config import Settings
+        from arkham_mcp.config import Settings
 
         with pytest.raises(ValidationError, match="Authentication required"):
             Settings(api_key=None, cookie=None)
 
     def test_valid_with_api_key_only(self):
-        from src.arkham_mcp.config import Settings
+        from arkham_mcp.config import Settings
 
         s = Settings(api_key="key")
         assert s.api_key == "key"
         # assert s.cookie is None
 
     def test_valid_with_cookie_only(self):
-        from src.arkham_mcp.config import Settings
+        from arkham_mcp.config import Settings
 
         s = Settings(cookie="AMP_f072531383=JTdC")
         assert s.api_key is None
         assert s.cookie == "AMP_f072531383=JTdC"
 
     def test_valid_with_both(self):
-        from src.arkham_mcp.config import Settings
+        from arkham_mcp.config import Settings
 
         s = Settings(api_key="key", cookie="c=v")
         assert s.api_key == "key"
@@ -119,7 +119,7 @@ class TestSettingsAuth:
 
     def test_multiple_cookies_in_one_string(self):
         """Cookie header может содержать несколько кук через '; '."""
-        from src.arkham_mcp.config import Settings
+        from arkham_mcp.config import Settings
 
         cookie = "AMP_f072531383=JTdC; sessionId=abc123; other=val"
         s = Settings(cookie=cookie)

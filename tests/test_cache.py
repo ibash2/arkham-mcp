@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from src.arkham_mcp.cache import ResponseCache, TTL_STATIC, TTL_ENTITY, TTL_ADDRESS, TTL_MARKET
+from arkham_mcp.cache import ResponseCache, TTL_STATIC, TTL_ENTITY, TTL_ADDRESS, TTL_MARKET
 
 
 class TestResponseCacheGet:
@@ -31,7 +31,7 @@ class TestResponseCacheGet:
     async def test_miss_after_ttl_expired(self):
         cache = ResponseCache()
         # Manually insert an already-expired entry
-        from src.arkham_mcp.cache import _Entry
+        from arkham_mcp.cache import _Entry
         cache._store["k"] = _Entry(value="stale", expires_at=time.monotonic() - 1)
         hit, value = await cache.get("k")
         assert hit is False
@@ -132,7 +132,7 @@ class TestResponseCacheEvict:
 
     @pytest.mark.asyncio
     async def test_evict_expired_removes_only_stale(self):
-        from src.arkham_mcp.cache import _Entry
+        from arkham_mcp.cache import _Entry
         cache = ResponseCache()
         now = time.monotonic()
 

@@ -16,7 +16,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_aggregates_flow_and_counterparties(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -36,7 +36,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_counterparty_fields_mapped_correctly(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -57,7 +57,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_flow_failure_degrades_gracefully(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -77,7 +77,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_counterparties_failure_degrades_gracefully(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -95,7 +95,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_both_fail_returns_empty_result(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -114,7 +114,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_passes_time_last_to_client(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -136,7 +136,7 @@ class TestGetAddressActivity:
     @pytest.mark.asyncio
     async def test_uses_snapshots_key_as_fallback(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -159,7 +159,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_detects_added_token(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -188,7 +188,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_detects_removed_token(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -215,7 +215,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_detects_changed_position(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -240,7 +240,7 @@ class TestGetPortfolioChange:
     async def test_ignores_negligible_changes(self):
         """Delta < 0.01 USD should not appear in changed."""
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -259,7 +259,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_before_fetch_failure_raises(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -275,7 +275,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_after_fetch_failure_raises(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)
@@ -294,7 +294,7 @@ class TestGetPortfolioChange:
     @pytest.mark.asyncio
     async def test_changed_sorted_by_abs_delta(self):
         from fastmcp import FastMCP
-        from src.arkham_mcp.tools.activity import register
+        from arkham_mcp.tools.activity import register
 
         mcp = FastMCP("test")
         register(mcp)

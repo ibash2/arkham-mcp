@@ -8,15 +8,16 @@ Tests for tools/investigation.py:
 import pytest
 
 from tests.conftest import make_client, make_ctx
-from src.arkham_mcp.tools.investigation import _extract_risk_flags
+from arkham_mcp.tools.forensics import _extract_risk_flags
 
 
 async def get_tool(name: str):
     from fastmcp import FastMCP
-    from src.arkham_mcp.tools.investigation import register
+    from arkham_mcp.tools import forensics, transfers
 
     mcp = FastMCP("test")
-    register(mcp)
+    forensics.register(mcp)
+    transfers.register(mcp)
     return await mcp.get_tool(name)
 
 

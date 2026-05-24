@@ -9,7 +9,7 @@ from tests.conftest import make_client, make_ctx
 
 async def get_tool(name: str):
     from fastmcp import FastMCP
-    from src.arkham_mcp.tools.atomic import register
+    from arkham_mcp.tools.atomic import register
 
     mcp = FastMCP("test")
     register(mcp)

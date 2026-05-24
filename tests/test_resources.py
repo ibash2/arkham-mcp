@@ -17,7 +17,7 @@ class TestAddressResource:
 
     @pytest.mark.asyncio
     async def test_returns_valid_json(self):
-        from src.arkham_mcp.resources.address import _address_snapshot
+        from arkham_mcp.resources.address import _address_snapshot
 
         client = make_client()
         raw = await _address_snapshot("0xABC", client)
@@ -31,7 +31,7 @@ class TestAddressResource:
 
     @pytest.mark.asyncio
     async def test_unidentified_address(self):
-        from src.arkham_mcp.resources.address import _address_snapshot
+        from arkham_mcp.resources.address import _address_snapshot
 
         client = make_client(
             get_address_enriched={
@@ -53,7 +53,7 @@ class TestAddressResource:
 
     @pytest.mark.asyncio
     async def test_enriched_failure_returns_partial_data(self):
-        from src.arkham_mcp.resources.address import _address_snapshot
+        from arkham_mcp.resources.address import _address_snapshot
 
         client = make_client()
         client.get_address_enriched.side_effect = Exception("API error")
@@ -67,7 +67,7 @@ class TestAddressResource:
 
     @pytest.mark.asyncio
     async def test_registered_as_template_resource(self):
-        from src.arkham_mcp.resources.address import register
+        from arkham_mcp.resources.address import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -83,7 +83,7 @@ class TestEntityResource:
 
     @pytest.mark.asyncio
     async def test_returns_valid_json(self):
-        from src.arkham_mcp.resources.entity import _entity_profile
+        from arkham_mcp.resources.entity import _entity_profile
 
         raw = await _entity_profile("binance", make_client())
         data = json.loads(raw)
@@ -97,7 +97,7 @@ class TestEntityResource:
 
     @pytest.mark.asyncio
     async def test_partial_failure_omits_fields(self):
-        from src.arkham_mcp.resources.entity import _entity_profile
+        from arkham_mcp.resources.entity import _entity_profile
 
         client = make_client()
         client.get_entity_summary.side_effect = Exception("not found")
@@ -112,7 +112,7 @@ class TestEntityResource:
 
     @pytest.mark.asyncio
     async def test_registered_as_template_resource(self):
-        from src.arkham_mcp.resources.entity import register
+        from arkham_mcp.resources.entity import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")
@@ -128,7 +128,7 @@ class TestNetworkResources:
 
     @pytest.mark.asyncio
     async def test_network_history_returns_json(self):
-        from src.arkham_mcp.resources.network import _network_history
+        from arkham_mcp.resources.network import _network_history
 
         raw = await _network_history("ethereum", make_client())
         data = json.loads(raw)
@@ -138,7 +138,7 @@ class TestNetworkResources:
 
     @pytest.mark.asyncio
     async def test_network_history_calls_7d(self):
-        from src.arkham_mcp.resources.network import _network_history
+        from arkham_mcp.resources.network import _network_history
 
         client = make_client()
         await _network_history("solana", client)
@@ -147,7 +147,7 @@ class TestNetworkResources:
 
     @pytest.mark.asyncio
     async def test_networks_status_returns_json(self):
-        from src.arkham_mcp.resources.network import _networks_status
+        from arkham_mcp.resources.network import _networks_status
 
         raw = await _networks_status(make_client())
         data = json.loads(raw)
@@ -156,7 +156,7 @@ class TestNetworkResources:
 
     @pytest.mark.asyncio
     async def test_registered_as_static_resource(self):
-        from src.arkham_mcp.resources.network import register
+        from arkham_mcp.resources.network import register
         from fastmcp import FastMCP
 
         mcp = FastMCP("test")

@@ -10,8 +10,8 @@ import os
 import pytest
 import pytest_asyncio
 
-from src.arkham_mcp.config import Settings
-from src.arkham_mcp.providers import get_provider
+from arkham_mcp.config import Settings
+from arkham_mcp.providers import get_provider
 
 
 # ---------------------------------------------------------------------------
