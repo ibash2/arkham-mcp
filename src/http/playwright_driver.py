@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
@@ -32,6 +33,15 @@ class PlaywrightWebDriverHttp:
     def _make_query_string(self, params: dict) -> str:
         return urlencode(params)
 
+    def _resolve_proxy(self) -> str | None:
+        if self.proxy:
+            return self.proxy
+        for var in ("ALL_PROXY", "all_proxy", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"):
+            val = os.environ.get(var, "").strip()
+            if val:
+                return val
+        return None
+
     async def prepare_browser(self) -> BrowserContext:
         browser = self._prepared_map.get("browser")
         if not browser:
@@ -44,10 +54,11 @@ class PlaywrightWebDriverHttp:
                 "--disable-features=IsolateOrigins,site-per-process",
                 "--disable-blink-features=AutomationControlled",
             ]
-            if not self.proxy:
+            resolved_proxy = self._resolve_proxy()
+            if not resolved_proxy:
                 launch_args.append("--no-proxy-server")
 
-            proxy_config = {"server": self.proxy} if self.proxy else None
+            proxy_config = {"server": resolved_proxy} if resolved_proxy else None
             browser = await context.chromium.launch(
                 headless=self.headless,
                 args=launch_args,
